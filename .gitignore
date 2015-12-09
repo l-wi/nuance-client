@@ -19,3 +19,4 @@ credentials.properties
 .loadpath
 .project
 test.wav
+/testRecord.wav
