@@ -7,6 +7,9 @@ import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -43,6 +46,22 @@ public class NuanceClient {
 		} catch (Exception ex) {
 			throw new NuanceClientException(creds, ex);
 		}
+
+	}
+
+	public void requestAsync(InputStream input, String enc, Consumer<List<String>> handler) {
+
+		Supplier<List<String>> s = () -> {
+			try {
+				return this.request(input, enc);
+			} catch (NuanceClientException e) {
+				// TODO BETTER EXCEPTION Handling;
+				throw new RuntimeException(e);
+			}
+		};
+
+		CompletableFuture<List<String>> completableFuture = CompletableFuture.supplyAsync(s);
+		completableFuture.thenAccept(handler);
 
 	}
 
