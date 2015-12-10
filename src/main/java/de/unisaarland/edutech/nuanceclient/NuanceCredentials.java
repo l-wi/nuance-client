@@ -1,10 +1,14 @@
 package de.unisaarland.edutech.nuanceclient;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
@@ -90,6 +94,13 @@ public class NuanceCredentials {
 		return new URIBuilder().setScheme(PROTOCOL).setHost(host).setPort(port).setPath(servlet).addParameters(qparams)
 				.setCharset(Charset.forName(ENCODING)).build();
 
+	}
+
+	public static NuanceCredentials construct() throws IOException {
+		Properties props = new Properties();
+		props.load(new FileInputStream("credentials.properties"));
+		return new NuanceCredentials(props.getProperty("appKey"), props.getProperty("appId"),
+				props.getProperty("deviceId"));
 	}
 
 	@Override

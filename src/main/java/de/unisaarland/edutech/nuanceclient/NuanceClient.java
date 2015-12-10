@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -26,7 +28,7 @@ public class NuanceClient {
 
 	}
 
-	public String request(InputStream input, String enc) throws NuanceClientException {
+	public List<String> request(InputStream input, String enc) throws NuanceClientException {
 		try {
 			// create a connection to the API
 			HttpPost postReq = newPostRequest(enc);
@@ -44,23 +46,24 @@ public class NuanceClient {
 
 	}
 
-	private String parseResponse(HttpResponse response) throws UnsupportedOperationException, IOException {
+	private List<String> parseResponse(HttpResponse response) throws UnsupportedOperationException, IOException {
 		HttpEntity entity = throwIfNoResponseEntity(response);
 
-		StringBuilder builder = new StringBuilder();
+		List<String> result = new ArrayList<String>();
 
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent()))) {
 			String line = null;
 
 			while ((line = reader.readLine()) != null) {
-				builder.append(line).append("\n");
+				result.add(line);
 			}
 
 			EntityUtils.consume(entity);
 
 		}
 
-		return builder.toString();
+		// TODO what if there is no result?
+		return result;
 	}
 
 	private HttpEntity throwIfNoResponseEntity(HttpResponse response) throws NuanceClientException {
