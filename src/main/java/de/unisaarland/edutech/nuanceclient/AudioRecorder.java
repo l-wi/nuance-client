@@ -56,7 +56,7 @@ public class AudioRecorder {
 			dest.close();
 			recordingThread.join(2000);
 		} catch (InterruptedException | IOException e) {
-			// TODO better exception handling
+			// TODO throw own exception type
 			throw new RuntimeException("Recording failed to stop after 2 seconds!", e);
 		}
 	}
@@ -65,7 +65,7 @@ public class AudioRecorder {
 		DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
 
 		if (!AudioSystem.isLineSupported(info))
-			// TODO better exception handling
+			// TODO throw own exception type 
 			throw new RuntimeException("Non supported Data line" + info);
 
 		return info;
@@ -79,6 +79,11 @@ public class AudioRecorder {
 		boolean bigEndian = true;
 		return new AudioFormat(sampleRate, sampleSizeInBits, channels, signed, bigEndian);
 
+	}
+
+	public String getActiveEncoding() {
+		return "audio/x-wav;codec=pcm;bit=16;rate=16000";
+		
 	}
 
 }
