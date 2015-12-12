@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.apache.http.HttpEntity;
@@ -49,40 +50,70 @@ public class NuanceClient {
 
 	}
 
-	public void requestAsync(InputStream input, String enc, Consumer<List<String>> handler) {
+	public void requestAsync(InputStream input, String enc, Consumer<Result> handler) {
 
-		Supplier<List<String>> s = () -> {
+		Supplier<Result> s = () -> {
+			Result result = new Result();
+
 			try {
-				return this.request(input, enc);
+				List<String> resultSet = this.request(input, enc);
+				result.resultSet = resultSet;
 			} catch (NuanceClientException e) {
-				// TODO BETTER EXCEPTION Handling;
-				throw new RuntimeException(e);
+				result.exception = e;
 			}
+			return result;
 		};
 
-		CompletableFuture<List<String>> completableFuture = CompletableFuture.supplyAsync(s);
-		completableFuture.thenAccept(handler);
+		Function<Throwable, Result> exHandler = (ex) -> {
+			Result result = new Result();
+			result.exception = ex;
+			return result;
+		};
+
+		CompletableFuture.supplyAsync(s).exceptionally(exHandler).thenAccept(handler);
 
 	}
 
-	private List<String> parseResponse(HttpResponse response) throws UnsupportedOperationException, IOException {
+	private List<String> parseResponse(HttpResponse response) throws NuanceClientException {
 		HttpEntity entity = throwIfNoResponseEntity(response);
 
 		List<String> result = new ArrayList<String>();
+
+		if (response.getStatusLine().getStatusCode() != 200) {
+			StringBuilder builder = new StringBuilder();
+			parseResultOrThrow(response, entity, (x) -> {
+				builder.append(x);
+			});
+			throw new NuanceClientException(response.getStatusLine(), creds, builder.toString());
+		} else
+			parseResultOrThrow(response, entity, (x) -> {
+				result.add(x);
+			});
+
+		return result;
+	}
+
+	private void parseResultOrThrow(HttpResponse response, HttpEntity entity, Consumer<String> handler)
+			throws NuanceClientException {
+		try {
+			parseResult(entity, handler);
+		} catch (IOException e) {
+			throw new NuanceClientException(creds, e);
+		}
+	}
+
+	private void parseResult(HttpEntity entity, Consumer<String> h) throws IOException {
 
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent()))) {
 			String line = null;
 
 			while ((line = reader.readLine()) != null) {
-				result.add(line);
+				h.accept(line);
 			}
 
 			EntityUtils.consume(entity);
 
 		}
-
-		// TODO what if there is no result?
-		return result;
 	}
 
 	private HttpEntity throwIfNoResponseEntity(HttpResponse response) throws NuanceClientException {
@@ -116,4 +147,13 @@ public class NuanceClient {
 		return entity;
 	}
 
+	public class Result {
+		public String errorMsg;
+		public List<String> resultSet;
+		public Throwable exception;
+
+		public boolean isSuccessful() {
+			return errorMsg == null && exception == null;
+		}
+	}
 }

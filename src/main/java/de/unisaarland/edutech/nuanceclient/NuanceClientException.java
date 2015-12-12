@@ -3,6 +3,7 @@ package de.unisaarland.edutech.nuanceclient;
 import java.io.IOException;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 
 public class NuanceClientException extends IOException {
 
@@ -16,4 +17,7 @@ public class NuanceClientException extends IOException {
 				+ "\n see the response for more details:\n----------------" + resp + "-----------\n\n");
 	}
 
+	public NuanceClientException(StatusLine statusLine, NuanceCredentials creds, String body) {
+		super("Bad response status" + statusLine + " \t with creds: " + creds + "message body" + body);
+	}
 }
