@@ -15,6 +15,7 @@ public class AudioRecorder {
 
 	private Thread recordingThread;
 	private AudioInputStream dest;
+	private Exception recordingException;
 
 	public void record(File f) {
 
@@ -23,24 +24,15 @@ public class AudioRecorder {
 			@Override
 			public void run() {
 
+
 				AudioFormat format = getMicAudioFormat();
-				DataLine.Info info = getDataLineAndthrowIfUnsupportedFormat(format);
 
-				try (TargetDataLine line = (TargetDataLine) AudioSystem.getLine(info)) {
-					line.open(format);
+				DataLine.Info info = getDataLineInfoOrSetException(format);
 
-					// Begin audio capture.
-					line.start();
+				if (info == null)
+					return;
 
-					dest = new AudioInputStream(line);
-
-					// start recording
-					AudioSystem.write(dest, AudioFileFormat.Type.WAVE, f);
-
-				} catch (LineUnavailableException | IOException ex) {
-					// TODO exception handling
-					throw new RuntimeException(ex);
-				}
+				recordOrSetException(f, format, info);
 
 			}
 		};
@@ -50,23 +42,57 @@ public class AudioRecorder {
 
 	}
 
-	public void stop() {
+	public void stop() throws RecordingException {
 		try {
+			if (recordingException != null)
+				throw new RecordingException(recordingException);
 
 			dest.close();
 			recordingThread.join(2000);
+			
+			recordingException = null;
+			dest = null;
+			recordingThread = null;
+			
 		} catch (InterruptedException | IOException e) {
-			// TODO throw own exception type
-			throw new RuntimeException("Recording failed to stop after 2 seconds!", e);
+			throw new RecordingException(e);
 		}
 	}
 
-	private DataLine.Info getDataLineAndthrowIfUnsupportedFormat(AudioFormat format) {
+	private void recordOrSetException(File f, AudioFormat format, DataLine.Info info) {
+
+		try (TargetDataLine line = (TargetDataLine) AudioSystem.getLine(info)) {
+			line.open(format);
+
+			// Begin audio capture.
+			line.start();
+
+			dest = new AudioInputStream(line);
+
+			// start recording
+			AudioSystem.write(dest, AudioFileFormat.Type.WAVE, f);
+
+		} catch (LineUnavailableException | IOException ex) {
+			recordingException = ex;
+
+		}
+	}
+
+	private DataLine.Info getDataLineInfoOrSetException(AudioFormat format) {
+		try {
+			DataLine.Info info = getDataLineAndthrowIfUnsupportedFormat(format);
+			return info;
+		} catch (IOException ex) {
+			recordingException = ex;
+		}
+		return null;
+	}
+
+	private DataLine.Info getDataLineAndthrowIfUnsupportedFormat(AudioFormat format) throws IOException {
 		DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
 
 		if (!AudioSystem.isLineSupported(info))
-			// TODO throw own exception type 
-			throw new RuntimeException("Non supported Data line" + info);
+			throw new IOException("Non supported Data line" + info);
 
 		return info;
 	}
@@ -83,7 +109,7 @@ public class AudioRecorder {
 
 	public String getActiveEncoding() {
 		return "audio/x-wav;codec=pcm;bit=16;rate=16000";
-		
+
 	}
 
 }

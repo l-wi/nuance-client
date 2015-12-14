@@ -25,10 +25,14 @@ public class Main {
 			public void run() {
 				try {
 					Thread.sleep(sleep);
+					recorder.stop();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
+				} catch (RecordingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
-				recorder.stop();
+		
 			}
 		};
 
@@ -38,7 +42,6 @@ public class Main {
 		t.join();
 
 		
-		recorder.stop();
 
 		
 	
