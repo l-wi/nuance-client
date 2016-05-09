@@ -8,6 +8,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.SynchronousQueue;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
@@ -20,9 +21,10 @@ public class NuanceCredentials {
 	public final String APP_KEY;
 	public final String APP_ID;
 	public final String DEVICE_ID;
-
+	 
 	private String host = "dictation.nuancemobility.net";
 	private String servlet = "/NMDPAsrCmdServlet/dictation";
+	
 	private int port = 443;
 
 	private String lang = "de_DE";
@@ -99,7 +101,7 @@ public class NuanceCredentials {
 		Properties props = new Properties();
 		props.load(new FileInputStream("credentials.properties"));
 		return new NuanceCredentials(props.getProperty("appKey"), props.getProperty("appId"),
-				props.getProperty("deviceId"));
+				props.getProperty("deviceID"));
 	}
 
 	@Override

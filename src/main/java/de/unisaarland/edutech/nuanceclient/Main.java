@@ -15,35 +15,36 @@ public class Main {
 	public static void main(String[] args)
 			throws IOException, NuanceClientException, InterruptedException, ExecutionException {
 
-		AudioRecorder recorder = new AudioRecorder();
-
-		long sleep = 1000 * 10;
-
-		Runnable timer = new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(sleep);
-					recorder.stop();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				} catch (RecordingException e) {
-
-					e.printStackTrace();
-				}
+//		AudioRecorder recorder = new AudioRecorder();
+//
+//		long sleep = 1000 * 10;
+//
+//		Runnable timer = new Runnable() {
+//
+//			@Override
+//			public void run() {
+//				try {
+//					Thread.sleep(sleep);
+//					recorder.stop();
+//				} catch (InterruptedException e) {
+//					e.printStackTrace();
+//				} catch (RecordingException e) {
+//
+//					e.printStackTrace();
+//				}
+//		
+//			}
+//		};
+//
+//		recorder.record(new File("testRecord.wav"));
+//		Thread t = new Thread(timer);
+//		t.start();
+//		t.join();
+//
+//		
 		
-			}
-		};
 
-		recorder.record(new File("testRecord.wav"));
-		Thread t = new Thread(timer);
-		t.start();
-		t.join();
-
-		
-
-		
+		nuanceLookup();
 	
 	}
 
@@ -52,7 +53,7 @@ public class Main {
 		props.load(new FileInputStream("credentials.properties"));
 
 		NuanceCredentials creds = new NuanceCredentials(props.getProperty("appKey"), props.getProperty("appId"),
-				props.getProperty("deviceId"));
+				props.getProperty("deviceID"));
 
 		NuanceClient client = new NuanceClient(creds);
 		File f = new File("./test.wav");
