@@ -99,7 +99,7 @@ public class NuanceCredentials {
 
 	public static NuanceCredentials construct() throws IOException {
 		Properties props = new Properties();
-		props.load(new FileInputStream("credentials.properties"));
+		props.load(new FileInputStream("nuanceCredentials.properties"));
 		return new NuanceCredentials(props.getProperty("appKey"), props.getProperty("appId"),
 				props.getProperty("deviceID"));
 	}
