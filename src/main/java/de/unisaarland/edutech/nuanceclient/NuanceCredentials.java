@@ -100,8 +100,16 @@ public class NuanceCredentials {
 	public static NuanceCredentials construct() throws IOException {
 		Properties props = new Properties();
 		props.load(new FileInputStream("credentials.properties"));
-		return new NuanceCredentials(props.getProperty("appKey"), props.getProperty("appId"),
+		
+		String lang = props.getProperty("lang");
+		
+		NuanceCredentials nuanceCredentials = new NuanceCredentials(props.getProperty("appKey"), props.getProperty("appId"),
 				props.getProperty("deviceID"));
+		
+		if(lang != null)
+			nuanceCredentials.setLang(lang);
+		
+		return nuanceCredentials;
 	}
 
 	@Override
